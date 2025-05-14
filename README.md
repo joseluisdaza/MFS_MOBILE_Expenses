@@ -9,12 +9,12 @@ Sistema SQLite is a Flutter application that utilizes SQLite for local data stor
 ```
 sistema_sqlite
 ├── lib
-│   ├── databasehelper
+│   ├── data
 │   │   └── ab_helper.dart
-│   ├── modelos
+│   ├── models
 │   │   ├── modeloProducto.dart
 │   │   └── [other_modelos].dart
-│   ├── paginas
+│   ├── presentation
 │   │   ├── producto_page.dart
 │   │   └── [other_pages].dart
 │   └── main.dart
@@ -32,7 +32,7 @@ sistema_sqlite
 
 1. Clone the repository:
    ```
-   git clone <repository-url>
+   git clone https://github.com/joseluisdaza/MFS_MOBILE_Expenses.git
    ```
 2. Navigate to the project directory:
    ```

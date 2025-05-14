@@ -1,7 +1,7 @@
-import 'package:sistema_sqlite/modelos/modeloProducto.dart';
-import 'package:sistema_sqlite/modelos/modeloRegistroProducto.dart';
-import 'package:sistema_sqlite/modelos/modeloTipoProducto.dart';
-import 'package:sistema_sqlite/modelos/modeloUsuario.dart';
+import 'package:sistema_sqlite/models/modeloProducto.dart';
+import 'package:sistema_sqlite/models/modeloRegistroProducto.dart';
+import 'package:sistema_sqlite/models/modeloTipoProducto.dart';
+import 'package:sistema_sqlite/models/modeloUsuario.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 

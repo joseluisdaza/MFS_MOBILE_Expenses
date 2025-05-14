@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_sqlite/paginas/producto.dart';
+import 'package:sistema_sqlite/presentation/producto.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});

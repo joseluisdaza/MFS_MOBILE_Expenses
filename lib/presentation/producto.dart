@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_sqlite/databasehelper/ab_helper.dart';
-import 'package:sistema_sqlite/modelos/modeloProducto.dart';
+import 'package:sistema_sqlite/data/ab_helper.dart';
+import 'package:sistema_sqlite/models/modeloProducto.dart';
 
 class Producto extends StatefulWidget {
   const Producto({super.key});
