@@ -8,8 +8,9 @@ import 'package:path/path.dart';
 class DatabaseHelper {
   static Database? _db;
 
-  static const String dbName = 'my_db.db';
-  static const int dbVersion = 2;
+  // static const String dbName = 'my_db.db';
+  static const String dbName = 'test02.db';
+  static const int dbVersion = 1;
 
   static Future<Database> get database async {
     if (_db != null) return _db!;
@@ -36,8 +37,8 @@ class DatabaseHelper {
       CREATE TABLE producto (
         pkProducto INTEGER PRIMARY KEY AUTOINCREMENT,
         nombreProducto TEXT NOT NULL UNIQUE,
-        CostoProducto REAL NOT NULL,
-        pkTipoProducto INTEGER NULL,
+        costoProducto REAL NOT NULL,
+        pkTipoProducto INTEGER NULL
       )
     ''');
 
