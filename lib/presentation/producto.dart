@@ -1,94 +1,112 @@
 import 'package:flutter/material.dart';
-import 'package:sistema_sqlite/data/ab_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistema_sqlite/models/modeloProducto.dart';
+import 'package:sistema_sqlite/providers/producto_provider.dart';
 
-class Producto extends StatefulWidget {
+class Producto extends ConsumerWidget {
   const Producto({super.key});
 
   @override
-  State<Producto> createState() => _ProductoState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final productos = ref.watch(productoProvider);
+    final nombreController = TextEditingController();
+    final costoController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final modo = ValueNotifier('grabar');
+    final pkActivo = ValueNotifier(-1);
 
-class _ProductoState extends State<Producto> {
-  final _formKey = GlobalKey<FormState>();
-  final _nombreProducto = TextEditingController();
-  final _costoUnitario = TextEditingController();
-  List<ModeloProducto> _productos = [];
-  final _dbHelper = DatabaseHelper();
-  String modo = 'grabar';
-  int _pkActivo = -1;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    _cargarProductos();
-  }
-
-  Future<void> _cargarProductos() async {
-    final productos = await _dbHelper.getProductos();
-
-    setState(() {
-      _productos = productos;
-    });
-  }
-
-  Future<void> _grabarProducto() async {
-    // vemos si existe el nombre
-    final nombre = _nombreProducto.text;
-    final costo = double.tryParse(_costoUnitario.text) ?? 0.0;
-    bool existe = await _dbHelper.existeNombreProducto(nombre);
-
-    if (!existe) {
-      final nuevoProducto = ModeloProducto(
-        nombreProducto: nombre,
-        costoProducto: costo,
-      );
-      await _dbHelper.insertaProducto(nuevoProducto);
-      _nombreProducto.clear();
-      _costoUnitario.clear();
-      _cargarProductos();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Procesando datos')));
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error, el nombre ya existe')));
+    void limpiarCampos() {
+      nombreController.clear();
+      costoController.clear();
+      pkActivo.value = -1;
+      modo.value = 'grabar';
     }
-  }
 
-  Future<void> _modificarProducto() async {
-    final nombre = _nombreProducto.text;
-    final costo = double.tryParse(_costoUnitario.text) ?? 0.0;
-    final nuevoProducto = ModeloProducto(
-      pkProducto: _pkActivo,
-      nombreProducto: nombre,
-      costoProducto: costo,
-    );
+    Future<void> grabarProducto() async {
+      final nombre = nombreController.text;
+      final costo = double.tryParse(costoController.text) ?? 0.0;
+      final existe = await ref
+          .read(productoProvider.notifier)
+          .grabarProducto(nombre, costo);
+      if (existe) {
+        limpiarCampos();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Producto grabado correctamente')),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error, el nombre ya existe')));
+      }
+    }
 
-    await _dbHelper.actualizarProducto(nuevoProducto, _pkActivo);
-    _nombreProducto.clear();
-    _costoUnitario.clear();
-    _cargarProductos();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Se actualizo con exito')));
-  }
+    Future<void> modificarProducto() async {
+      final nombre = nombreController.text;
+      final costo = double.tryParse(costoController.text) ?? 0.0;
+      await ref
+          .read(productoProvider.notifier)
+          .modificarProducto(pkActivo.value, nombre, costo);
+      limpiarCampos();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Se actualizó con éxito')));
+    }
 
-  @override
-  Widget build(BuildContext context) {
+    Future<void> estaSeguroDeEliminar(ModeloProducto objProducto) async {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Confirma la eliminación de:'),
+            content: Text(
+              objProducto.nombreProducto,
+              style: const TextStyle(fontSize: 25),
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  await ref
+                      .read(productoProvider.notifier)
+                      .eliminarProducto(objProducto);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Producto eliminado')),
+                  );
+                },
+                child: const Text('Confirmo'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancelar'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    void editarCampos(ModeloProducto item) {
+      nombreController.text = item.nombreProducto;
+      costoController.text = item.costoProducto.toString();
+      pkActivo.value = item.pkProducto!;
+      modo.value = 'modificar';
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text('ABC Producto')),
+      appBar: AppBar(title: const Text('ABC Producto')),
       body: Padding(
-        padding: EdgeInsets.all(30),
+        padding: const EdgeInsets.all(30),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             children: [
               TextFormField(
-                controller: _nombreProducto,
-                decoration: InputDecoration(
+                controller: nombreController,
+                decoration: const InputDecoration(
                   labelText: 'Nombre',
                   border: OutlineInputBorder(),
                 ),
@@ -99,10 +117,10 @@ class _ProductoState extends State<Producto> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextFormField(
-                controller: _costoUnitario,
-                decoration: InputDecoration(
+                controller: costoController,
+                decoration: const InputDecoration(
                   labelText: 'Costo unitario',
                   border: OutlineInputBorder(),
                 ),
@@ -114,65 +132,64 @@ class _ProductoState extends State<Producto> {
                 },
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    if (modo == 'grabar') {
-                      _grabarProducto();
-                    } else {
-                      _modificarProducto();
-                      _pkActivo = -1;
-                      modo = 'grabar';
-                      FocusScope.of(context).unfocus();
-                    }
-                  }
+              const SizedBox(height: 20),
+              ValueListenableBuilder<String>(
+                valueListenable: modo,
+                builder: (context, value, _) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        if (value == 'grabar') {
+                          grabarProducto();
+                        } else {
+                          modificarProducto();
+                        }
+                        FocusScope.of(context).unfocus();
+                      }
+                    },
+                    child: Text((value == 'grabar') ? 'Aceptar' : 'Modificar'),
+                  );
                 },
-                child: Text((modo == 'grabar') ? 'Aceptar' : 'Modificar'),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Expanded(
                 child:
-                    _productos.isEmpty
-                        ? Center(child: Text('No hay registros'))
+                    productos.isEmpty
+                        ? const Center(child: Text('No hay registros'))
                         : ListView.builder(
-                          itemCount: _productos.length,
+                          itemCount: productos.length,
                           itemBuilder: (context, index) {
-                            final item = _productos[index];
-
+                            final item = productos[index];
                             return Card(
                               child: Padding(
-                                padding: EdgeInsets.all(10),
+                                padding: const EdgeInsets.all(10),
                                 child: Padding(
-                                  padding: EdgeInsets.all(5),
+                                  padding: const EdgeInsets.all(5),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      // Expanded(child:
                                       Column(
                                         children: [
                                           Text(
                                             item.nombreProducto,
-                                            style: TextStyle(fontSize: 20),
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                            ),
                                           ),
                                           Text(
                                             'costo: ${item.costoProducto}',
-                                            style: TextStyle(fontSize: 15),
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                            ),
                                           ),
                                         ],
                                       ),
-                                      //),
                                       Row(
                                         children: [
                                           IconButton(
                                             onPressed: () {
-                                              setState(() {
-                                                _editarCampos(item);
-                                                _pkActivo = item.pkProducto!;
-                                                print('_pkActivo = $_pkActivo');
-                                                modo = 'modificar';
-                                              });
+                                              editarCampos(item);
                                             },
                                             icon: Icon(
                                               Icons.edit,
@@ -181,7 +198,7 @@ class _ProductoState extends State<Producto> {
                                           ),
                                           IconButton(
                                             onPressed: () {
-                                              _estaSeguroDeEliminar(item);
+                                              estaSeguroDeEliminar(item);
                                             },
                                             icon: Icon(
                                               Icons.delete,
@@ -203,47 +220,5 @@ class _ProductoState extends State<Producto> {
         ),
       ),
     );
-  }
-
-  Future<void> _estaSeguroDeEliminar(ModeloProducto objProducto) async {
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Confirma la eliminación de:'),
-          content: Text(
-            objProducto.nombreProducto,
-            style: TextStyle(fontSize: 25),
-            textAlign: TextAlign.center,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _dbHelper.eliminarProducto(objProducto);
-                Navigator.pop(context);
-                _cargarProductos();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Producto eliminado')),
-                );
-              },
-              child: Text('Confirmo'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancelar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _editarCampos(ModeloProducto item) async {
-    _nombreProducto.text = item.nombreProducto;
-    _costoUnitario.text = item.costoProducto.toString();
   }
 }
