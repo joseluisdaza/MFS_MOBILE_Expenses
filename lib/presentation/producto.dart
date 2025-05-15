@@ -121,7 +121,11 @@ class Producto extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('ABC Producto')),
+      appBar: AppBar(
+        title: const Text('Productos'),
+        backgroundColor: Colors.blueGrey,
+      ),
+      backgroundColor: Colors.blueGrey.shade100,
       body: Padding(
         padding: const EdgeInsets.all(30),
         child: Form(

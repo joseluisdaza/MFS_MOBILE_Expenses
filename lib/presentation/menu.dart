@@ -12,21 +12,21 @@ class _MenuState extends State<Menu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.purple.shade100,
+      backgroundColor: Colors.blueGrey.shade100,
       appBar: AppBar(
         title: Text('Menú principal'),
-        backgroundColor: Colors.purpleAccent,
+        backgroundColor: Colors.blueGrey,
       ),
       body: Center(child: Text('Sistema')),
       drawer: Drawer(
         child: Container(
-          color: Colors.tealAccent,
+          color: Colors.blueGrey.shade100,
           child: ListView(
             children: [
               UserAccountsDrawerHeader(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.black12, Colors.teal.shade900],
+                    colors: [Colors.black12, Colors.blueGrey.shade900],
                   ),
                 ),
                 accountName: Text('Personal system'),
