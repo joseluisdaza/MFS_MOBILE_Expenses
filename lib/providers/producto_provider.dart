@@ -13,12 +13,17 @@ class ProductoNotifier extends StateNotifier<List<ModeloProducto>> {
     state = productos;
   }
 
-  Future<bool> grabarProducto(String nombre, double costo) async {
+  Future<bool> grabarProducto(
+    String nombre,
+    double costo, [
+    String? icon,
+  ]) async {
     final existe = await dbHelper.existeNombreProducto(nombre);
     if (!existe) {
       final nuevoProducto = ModeloProducto(
         nombreProducto: nombre,
         costoProducto: costo,
+        icon: icon,
       );
       await dbHelper.insertaProducto(nuevoProducto);
       await cargarProductos();
@@ -27,11 +32,17 @@ class ProductoNotifier extends StateNotifier<List<ModeloProducto>> {
     return false;
   }
 
-  Future<void> modificarProducto(int pk, String nombre, double costo) async {
+  Future<void> modificarProducto(
+    int pk,
+    String nombre,
+    double costo, [
+    String? icon,
+  ]) async {
     final producto = ModeloProducto(
       pkProducto: pk,
       nombreProducto: nombre,
       costoProducto: costo,
+      icon: icon,
     );
     await dbHelper.actualizarProducto(producto, pk);
     await cargarProductos();

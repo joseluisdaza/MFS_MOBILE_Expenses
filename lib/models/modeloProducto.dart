@@ -3,12 +3,14 @@ class ModeloProducto {
   String nombreProducto;
   double costoProducto;
   int pkTipoProducto = -1;
+  String? icon;
 
   ModeloProducto({
     this.pkProducto,
     required this.nombreProducto,
     required this.costoProducto,
     this.pkTipoProducto = -1,
+    this.icon,
   });
 
   Map<String, dynamic> toMap() {
@@ -17,6 +19,7 @@ class ModeloProducto {
       'nombreProducto': nombreProducto,
       'costoProducto': costoProducto,
       'pkTipoProducto': pkTipoProducto,
+      'icon': icon,
     };
   }
 
@@ -25,6 +28,7 @@ class ModeloProducto {
       'nombreProducto': nombreProducto,
       'costoProducto': costoProducto,
       'pkTipoProducto': pkTipoProducto,
+      'icon': icon,
     };
   }
 
@@ -34,6 +38,7 @@ class ModeloProducto {
       nombreProducto: map['nombreProducto'],
       costoProducto: map['costoProducto'],
       pkTipoProducto: map['pkTipoProducto'],
+      icon: map['icon'],
     );
   }
 }

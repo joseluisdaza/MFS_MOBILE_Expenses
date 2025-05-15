@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Database? _db;
 
   // static const String dbName = 'my_db.db';
-  static const String dbName = 'test02.db';
+  static const String dbName = 'test03.db';
   static const int dbVersion = 1;
 
   static Future<Database> get database async {
@@ -38,7 +38,8 @@ class DatabaseHelper {
         pkProducto INTEGER PRIMARY KEY AUTOINCREMENT,
         nombreProducto TEXT NOT NULL UNIQUE,
         costoProducto REAL NOT NULL,
-        pkTipoProducto INTEGER NULL
+        pkTipoProducto INTEGER NULL,
+        icon TEXT NULL
       )
     ''');
 

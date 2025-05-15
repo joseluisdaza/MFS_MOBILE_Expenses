@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistema_sqlite/models/modeloProducto.dart';
 import 'package:sistema_sqlite/providers/producto_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class Producto extends ConsumerWidget {
   const Producto({super.key});
@@ -14,6 +18,7 @@ class Producto extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     final modo = ValueNotifier('grabar');
     final pkActivo = ValueNotifier(-1);
+    final imagePath = ValueNotifier<String?>(null);
 
     void limpiarCampos() {
       nombreController.clear();
@@ -22,12 +27,29 @@ class Producto extends ConsumerWidget {
       modo.value = 'grabar';
     }
 
+    Future<void> pickImage(ImageSource source) async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        imageQuality: 70,
+      );
+      if (pickedFile != null) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName = path.basename(pickedFile.path);
+        final savedImage = await File(
+          pickedFile.path,
+        ).copy('${appDir.path}/$fileName');
+        imagePath.value = savedImage.path;
+      }
+    }
+
     Future<void> grabarProducto() async {
       final nombre = nombreController.text;
       final costo = double.tryParse(costoController.text) ?? 0.0;
       final existe = await ref
           .read(productoProvider.notifier)
-          .grabarProducto(nombre, costo);
+          .grabarProducto(nombre, costo, imagePath.value);
+
       if (existe) {
         limpiarCampos();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -43,9 +65,10 @@ class Producto extends ConsumerWidget {
     Future<void> modificarProducto() async {
       final nombre = nombreController.text;
       final costo = double.tryParse(costoController.text) ?? 0.0;
+
       await ref
           .read(productoProvider.notifier)
-          .modificarProducto(pkActivo.value, nombre, costo);
+          .modificarProducto(pkActivo.value, nombre, costo, imagePath.value);
       limpiarCampos();
       ScaffoldMessenger.of(
         context,
@@ -94,6 +117,7 @@ class Producto extends ConsumerWidget {
       costoController.text = item.costoProducto.toString();
       pkActivo.value = item.pkProducto!;
       modo.value = 'modificar';
+      imagePath.value = item.icon;
     }
 
     return Scaffold(
@@ -117,7 +141,9 @@ class Producto extends ConsumerWidget {
                   return null;
                 },
               ),
+
               const SizedBox(height: 20),
+
               TextFormField(
                 controller: costoController,
                 decoration: const InputDecoration(
@@ -132,7 +158,41 @@ class Producto extends ConsumerWidget {
                 },
                 keyboardType: TextInputType.number,
               ),
+
               const SizedBox(height: 20),
+
+              ValueListenableBuilder<String?>(
+                valueListenable: imagePath,
+                builder: (context, value, _) {
+                  return Column(
+                    children: [
+                      value != null
+                          ? Image.file(File(value), width: 100, height: 100)
+                          : const Icon(
+                            Icons.image,
+                            size: 100,
+                            color: Colors.grey,
+                          ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.camera_alt),
+                            onPressed: () => pickImage(ImageSource.camera),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.photo),
+                            onPressed: () => pickImage(ImageSource.gallery),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+
               ValueListenableBuilder<String>(
                 valueListenable: modo,
                 builder: (context, value, _) {
@@ -151,7 +211,9 @@ class Producto extends ConsumerWidget {
                   );
                 },
               ),
+
               const SizedBox(height: 10),
+
               Expanded(
                 child:
                     productos.isEmpty
@@ -161,54 +223,36 @@ class Producto extends ConsumerWidget {
                           itemBuilder: (context, index) {
                             final item = productos[index];
                             return Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Text(
-                                            item.nombreProducto,
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                            ),
-                                          ),
-                                          Text(
-                                            'costo: ${item.costoProducto}',
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                        ],
+                              child: ListTile(
+                                leading:
+                                    item.icon != null
+                                        ? Image.file(
+                                          File(item.icon!),
+                                          width: 50,
+                                          height: 50,
+                                        )
+                                        : const Icon(Icons.image, size: 50),
+                                title: Text(item.nombreProducto),
+                                subtitle: Text('Costo: ${item.costoProducto}'),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.edit,
+                                        color: Colors.green.shade900,
                                       ),
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            onPressed: () {
-                                              editarCampos(item);
-                                            },
-                                            icon: Icon(
-                                              Icons.edit,
-                                              color: Colors.green.shade900,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            onPressed: () {
-                                              estaSeguroDeEliminar(item);
-                                            },
-                                            icon: Icon(
-                                              Icons.delete,
-                                              color: Colors.red.shade900,
-                                            ),
-                                          ),
-                                        ],
+                                      onPressed: () => editarCampos(item),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.delete,
+                                        color: Colors.red.shade900,
                                       ),
-                                    ],
-                                  ),
+                                      onPressed:
+                                          () => estaSeguroDeEliminar(item),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
