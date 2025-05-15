@@ -8,7 +8,6 @@ import 'package:path/path.dart';
 class DatabaseHelper {
   static Database? _db;
 
-  // static const String dbName = 'my_db.db';
   static const String dbName = 'test03.db';
   static const int dbVersion = 1;
 

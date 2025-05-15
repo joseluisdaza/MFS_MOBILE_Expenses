@@ -10,13 +10,17 @@ Sistema SQLite is a Flutter application that utilizes SQLite for local data stor
 sistema_sqlite
 ├── lib
 │   ├── data
-│   │   └── ab_helper.dart
+│   │   └── db_helper.dart
 │   ├── models
 │   │   ├── modeloProducto.dart
-│   │   └── [other_modelos].dart
+│   │   ├── modeloRegistroProducto.dart
+│   │   └── modeloTipoProducto.dart
+│   │   └── modeloUsuario.dart
 │   ├── presentation
 │   │   ├── producto_page.dart
-│   │   └── [other_pages].dart
+│   │   ├── menu.dart
+│   ├── providers
+│   │   ├── producto_provider.dart
 │   └── main.dart
 ├── pubspec.yaml
 └── README.md

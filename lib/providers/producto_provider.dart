@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sistema_sqlite/data/ab_helper.dart';
+import 'package:sistema_sqlite/data/db_helper.dart';
 import 'package:sistema_sqlite/models/modeloProducto.dart';
 
 class ProductoNotifier extends StateNotifier<List<ModeloProducto>> {
