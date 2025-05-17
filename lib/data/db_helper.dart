@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 class DatabaseHelper {
   static Database? _db;
 
-  static const String dbName = 'test03.db';
+  static const String dbName = 'test04.db';
   static const int dbVersion = 1;
 
   static Future<Database> get database async {
@@ -45,8 +45,9 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE usuario (
         pkUsuario INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombreUsuario TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
+        email TEXT NOT NULL UNIQUE,
+        nombre TEXT NOT NULL,
+        apellido TEXT NOT NULL
       )
     ''');
 
@@ -158,7 +159,10 @@ class DatabaseHelper {
     await db.delete('usuario', where: 'pkUsuario = ?', whereArgs: [pkUsuario]);
   }
 
-  Future<void> actualizarUsuario(ModeloUsuario usuario, int pkUsuario) async {
+  Future<void> actualizarUsuarioPorId(
+    ModeloUsuario usuario,
+    int pkUsuario,
+  ) async {
     final db = await database;
     await db.update(
       'usuario',
@@ -166,6 +170,46 @@ class DatabaseHelper {
       where: 'pkUsuario = ?',
       whereArgs: [pkUsuario],
     );
+  }
+
+  Future<bool> existeUsuario(String email) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'usuario',
+      where: 'email = ?',
+      whereArgs: [email],
+      limit: 1,
+    );
+
+    return result.isNotEmpty;
+  }
+
+  Future<void> actualizarUsuario(ModeloUsuario usuario) async {
+    final db = await database;
+    await db.update(
+      'usuario',
+      usuario.toMap(),
+      where: 'email = ?',
+      whereArgs: [usuario.email],
+    );
+  }
+
+  Future<ModeloUsuario> getUsuario(String email) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'usuario',
+      where: 'email = ?',
+      whereArgs: [email],
+      limit: 1,
+    );
+
+    if (!maps.isNotEmpty) {
+      return ModeloUsuario("Ingresa el nombre", "Ingresa el nombre", email);
+    }
+    return List.generate(
+      maps.length,
+      (i) => ModeloUsuario.fromMap(maps[i]),
+    ).first;
   }
 
   Future<List<ModeloUsuario>> getUsuarios() async {
