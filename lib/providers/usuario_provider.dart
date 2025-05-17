@@ -17,11 +17,12 @@ class UsuarioNotifier extends StateNotifier<List<ModeloUsuario>> {
     String nombre,
     String apellido,
     String email,
+    String? icon,
   ) async {
     // Check if email exists
     final existe = await dbHelper.existeUsuario(email);
     if (!existe) {
-      final nuevoUsuario = ModeloUsuario(nombre, apellido, email);
+      final nuevoUsuario = ModeloUsuario(nombre, apellido, email, icon);
       await dbHelper.insertaUsuario(nuevoUsuario);
       await cargarUsuarios();
       return true;
@@ -34,16 +35,12 @@ class UsuarioNotifier extends StateNotifier<List<ModeloUsuario>> {
     String nombre,
     String apellido,
     String emailNuevo,
+    String? icon,
   ) async {
-    final usuario = ModeloUsuario(nombre, apellido, emailNuevo);
+    final usuario = ModeloUsuario(nombre, apellido, emailNuevo, icon);
     await dbHelper.actualizarUsuario(usuario);
     await cargarUsuarios();
   }
-
-  // Future<void> eliminarUsuario(String email) async {
-  //   await dbHelper.eliminarUsuario(email);
-  //   await cargarUsuarios();
-  // }
 }
 
 final usuarioProvider =

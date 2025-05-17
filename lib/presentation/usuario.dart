@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:sistema_sqlite/models/modeloUsuario.dart';
 import 'package:sistema_sqlite/providers/usuario_provider.dart';
 
@@ -15,6 +20,7 @@ class Usuario extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     final modo = ValueNotifier('grabar');
     final emailActivo = ValueNotifier<String?>(null);
+    final imagePath = ValueNotifier<String?>(null);
 
     void limpiarCampos() {
       nombreController.clear();
@@ -30,15 +36,11 @@ class Usuario extends ConsumerWidget {
       final email = emailController.text;
       final ok = await ref
           .read(usuarioProvider.notifier)
-          .grabarUsuario(nombre, apellido, email);
+          .grabarUsuario(nombre, apellido, email, imagePath.value);
       if (ok) {
         limpiarCampos();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Usuario grabado correctamente')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error, el email ya existe')),
         );
       }
     }
@@ -49,54 +51,42 @@ class Usuario extends ConsumerWidget {
       final email = emailController.text;
       await ref
           .read(usuarioProvider.notifier)
-          .modificarUsuario(emailActivo.value!, nombre, apellido, email);
+          .modificarUsuario(
+            emailActivo.value!,
+            nombre,
+            apellido,
+            email,
+            imagePath.value,
+          );
       limpiarCampos();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Se actualizó con éxito')));
     }
 
-    // Future<void> estaSeguroDeEliminar(ModeloUsuario usuario) async {
-    //   await showDialog(
-    //     context: context,
-    //     barrierDismissible: false,
-    //     builder: (context) {
-    //       return AlertDialog(
-    //         title: const Text('Confirma la eliminación de:'),
-    //         content: Text(
-    //           usuario.email,
-    //           style: const TextStyle(fontSize: 20),
-    //           textAlign: TextAlign.center,
-    //         ),
-    //         actions: [
-    //           TextButton(
-    //             onPressed: () async {
-    //               await ref.read(usuarioProvider.notifier).eliminarUsuario(usuario.email);
-    //               Navigator.pop(context);
-    //               ScaffoldMessenger.of(context).showSnackBar(
-    //                 const SnackBar(content: Text('Usuario eliminado')),
-    //               );
-    //             },
-    //             child: const Text('Confirmo'),
-    //           ),
-    //           TextButton(
-    //             onPressed: () {
-    //               Navigator.pop(context);
-    //             },
-    //             child: const Text('Cancelar'),
-    //           ),
-    //         ],
-    //       );
-    //     },
-    //   );
-    // }
-
     void editarCampos(ModeloUsuario usuario) {
       nombreController.text = usuario.nombre;
       apellidoController.text = usuario.apellido;
       emailController.text = usuario.email;
       emailActivo.value = usuario.email;
+      imagePath.value = usuario.icon;
       modo.value = 'modificar';
+    }
+
+    Future<void> pickImage(ImageSource source) async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        imageQuality: 70,
+      );
+      if (pickedFile != null) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName = path.basename(pickedFile.path);
+        final savedImage = await File(
+          pickedFile.path,
+        ).copy('${appDir.path}/$fileName');
+        imagePath.value = savedImage.path;
+      }
     }
 
     return Scaffold(
@@ -111,6 +101,37 @@ class Usuario extends ConsumerWidget {
           key: formKey,
           child: Column(
             children: [
+              ValueListenableBuilder<String?>(
+                valueListenable: imagePath,
+                builder: (context, value, _) {
+                  return Column(
+                    children: [
+                      value != null
+                          ? Image.file(File(value), width: 100, height: 100)
+                          : const Icon(
+                            Icons.image,
+                            size: 100,
+                            color: Colors.grey,
+                          ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.camera_alt),
+                            onPressed: () => pickImage(ImageSource.camera),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.photo),
+                            onPressed: () => pickImage(ImageSource.gallery),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+
               TextFormField(
                 controller: nombreController,
                 decoration: const InputDecoration(
@@ -125,6 +146,7 @@ class Usuario extends ConsumerWidget {
                 },
               ),
               const SizedBox(height: 20),
+
               TextFormField(
                 controller: apellidoController,
                 decoration: const InputDecoration(
@@ -139,6 +161,7 @@ class Usuario extends ConsumerWidget {
                 },
               ),
               const SizedBox(height: 20),
+
               TextFormField(
                 controller: emailController,
                 decoration: const InputDecoration(
@@ -154,6 +177,7 @@ class Usuario extends ConsumerWidget {
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
+
               ValueListenableBuilder<String>(
                 valueListenable: modo,
                 builder: (context, value, _) {

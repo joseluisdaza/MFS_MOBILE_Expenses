@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 class DatabaseHelper {
   static Database? _db;
 
-  static const String dbName = 'test04.db';
+  static const String dbName = 'test05.db';
   static const int dbVersion = 1;
 
   static Future<Database> get database async {
@@ -47,7 +47,8 @@ class DatabaseHelper {
         pkUsuario INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT NOT NULL UNIQUE,
         nombre TEXT NOT NULL,
-        apellido TEXT NOT NULL
+        apellido TEXT NOT NULL,
+        icon TEXT NULL
       )
     ''');
 
@@ -204,7 +205,12 @@ class DatabaseHelper {
     );
 
     if (!maps.isNotEmpty) {
-      return ModeloUsuario("Ingresa el nombre", "Ingresa el nombre", email);
+      return ModeloUsuario(
+        "Ingresa el nombre",
+        "Ingresa el nombre",
+        email,
+        null,
+      );
     }
     return List.generate(
       maps.length,

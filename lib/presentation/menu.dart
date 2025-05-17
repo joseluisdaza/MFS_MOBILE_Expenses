@@ -1,7 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:sistema_sqlite/presentation/producto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sistema_sqlite/models/modeloUsuario.dart';
 import 'package:sistema_sqlite/presentation/usuario.dart';
 import 'package:sistema_sqlite/providers/usuario_provider.dart';
 
@@ -43,7 +44,23 @@ class Menu extends ConsumerWidget {
                 ),
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.white,
-                  child: Text('SP', style: TextStyle(fontSize: 35)),
+                  backgroundImage:
+                      (usuarios.isNotEmpty &&
+                              usuarios.first.icon != null &&
+                              usuarios.first.icon!.isNotEmpty)
+                          // Use FileImage for file paths, AssetImage for bundled assets
+                          ? (usuarios.first.icon!.startsWith('/') ||
+                                  usuarios.first.icon!.startsWith('file')
+                              ? FileImage(File(usuarios.first.icon!))
+                              : AssetImage(usuarios.first.icon!)
+                                  as ImageProvider)
+                          : null,
+                  child:
+                      (usuarios.isNotEmpty &&
+                              usuarios.first.icon != null &&
+                              usuarios.first.icon!.isNotEmpty)
+                          ? null
+                          : Text('SP', style: TextStyle(fontSize: 35)),
                 ),
               ),
 

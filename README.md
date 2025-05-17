@@ -17,10 +17,12 @@ sistema_sqlite
 │   │   └── modeloTipoProducto.dart
 │   │   └── modeloUsuario.dart
 │   ├── presentation
-│   │   ├── producto_page.dart
 │   │   ├── menu.dart
+│   │   ├── producto.dart
+│   │   ├── usuario.dart
 │   ├── providers
 │   │   ├── producto_provider.dart
+│   │   ├── usuario_provider.dart
 │   └── main.dart
 ├── pubspec.yaml
 └── README.md
