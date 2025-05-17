@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 class DatabaseHelper {
   static Database? _db;
 
-  static const String dbName = 'test05.db';
+  static const String dbName = 'test06.db';
   static const int dbVersion = 1;
 
   static Future<Database> get database async {

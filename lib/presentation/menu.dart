@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:sistema_sqlite/presentation/producto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sistema_sqlite/presentation/resumenProducto.dart';
 import 'package:sistema_sqlite/presentation/usuario.dart';
 import 'package:sistema_sqlite/providers/usuario_provider.dart';
 
@@ -19,7 +20,7 @@ class Menu extends ConsumerWidget {
         title: Text('Menú principal'),
         backgroundColor: Colors.blueGrey,
       ),
-      body: Center(child: Text('Control de gastos')),
+      body: Center(child: ResumenProducto()),
       drawer: Drawer(
         child: Container(
           color: Colors.blueGrey.shade100,
@@ -91,18 +92,6 @@ class Menu extends ConsumerWidget {
                   );
                 },
               ),
-
-              // ListTile(
-              //   focusColor: Colors.amber,
-              //   leading: Icon(Icons.sim_card_alert_sharp),
-              //   title: Text('Compras', style: TextStyle(fontSize: 20)),
-              // ),
-
-              // ListTile(
-              //   focusColor: Colors.amber,
-              //   leading: Icon(Icons.paypal),
-              //   title: Text('Ventas', style: TextStyle(fontSize: 20)),
-              // ),
             ],
           ),
         ),
